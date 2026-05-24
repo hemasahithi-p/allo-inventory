@@ -41,61 +41,89 @@ export default function ReservationPage({ params }: { params: Promise<{ id: stri
     router.push("/");
   }
 
-  if (loading) return <div className="p-8">Loading...</div>;
-  if (!reservation) return <div className="p-8">Reservation not found.</div>;
+  if (loading) return <div className="p-8 text-gray-300">Loading...</div>;
+  if (!reservation) return <div className="p-8 text-red-400">Reservation not found.</div>;
 
   const mins = Math.floor(secondsLeft / 60);
   const secs = secondsLeft % 60;
 
   return (
-    <main className="max-w-md mx-auto p-8">
+    <main className="max-w-md mx-auto p-8 text-white">
       <h1 className="text-2xl font-semibold mb-6">Checkout</h1>
-      <div className="border rounded-lg p-6 space-y-4">
+
+      <div className="border border-gray-700 rounded-lg p-6 space-y-4 bg-gray-900 shadow-lg">
+
         <div>
-          <p className="text-sm text-gray-500">Product</p>
-          <p className="font-medium">{reservation.product?.name}</p>
+          <p className="text-sm text-gray-400">Product</p>
+          <p className="font-medium text-gray-200">{reservation.product?.name}</p>
         </div>
+
         <div>
-          <p className="text-sm text-gray-500">Warehouse</p>
-          <p className="font-medium">{reservation.warehouse?.name}</p>
+          <p className="text-sm text-gray-400">Warehouse</p>
+          <p className="font-medium text-gray-200">{reservation.warehouse?.name}</p>
         </div>
+
         <div>
-          <p className="text-sm text-gray-500">Quantity</p>
-          <p className="font-medium">{reservation.quantity}</p>
+          <p className="text-sm text-gray-400">Quantity</p>
+          <p className="font-medium text-gray-200">{reservation.quantity}</p>
         </div>
+
         <div>
-          <p className="text-sm text-gray-500">Status</p>
+          <p className="text-sm text-gray-400">Status</p>
           <p className={`font-medium ${
-            reservation.status === "CONFIRMED" ? "text-green-600" :
-            reservation.status === "RELEASED" ? "text-red-600" : "text-blue-600"
-          }`}>{reservation.status}</p>
+            reservation.status === "CONFIRMED" ? "text-green-400" :
+            reservation.status === "RELEASED" ? "text-red-400" : "text-blue-400"
+          }`}>
+            {reservation.status}
+          </p>
         </div>
+
         {reservation.status === "PENDING" && (
-          <div className={`p-3 rounded ${secondsLeft < 60 ? "bg-red-50 text-red-700" : "bg-blue-50 text-blue-700"}`}>
-            Time remaining: {mins}:{secs.toString().padStart(2, "0")}
+          <div className={`p-3 rounded text-sm font-medium ${
+            secondsLeft < 60
+              ? "bg-red-900 text-red-300"
+              : "bg-blue-900 text-blue-300"
+          }`}>
+            ⏳ Time remaining: {mins}:{secs.toString().padStart(2, "0")}
           </div>
         )}
+
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded">{error}</div>
-        )}
-        {reservation.status === "CONFIRMED" && (
-          <div className="p-3 bg-green-50 border border-green-200 text-green-700 rounded">
-            Payment confirmed! Your order has been placed.
+          <div className="p-3 bg-red-900 border border-red-700 text-red-300 rounded">
+            {error}
           </div>
         )}
+
+        {reservation.status === "CONFIRMED" && (
+          <div className="p-3 bg-green-900 border border-green-700 text-green-300 rounded">
+            ✅ Payment confirmed! Your order has been placed.
+          </div>
+        )}
+
         {reservation.status === "PENDING" && (
           <div className="flex gap-3 pt-2">
-            <button onClick={confirm} className="flex-1 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+            <button
+              onClick={confirm}
+              className="flex-1 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            >
               Confirm purchase
             </button>
-            <button onClick={cancel} className="flex-1 py-2 border border-gray-300 rounded hover:bg-gray-50">
+
+            <button
+              onClick={cancel}
+              className="flex-1 py-2 border border-gray-600 text-gray-300 rounded hover:bg-gray-800 transition"
+            >
               Cancel
             </button>
           </div>
         )}
       </div>
-      <button onClick={() => router.push("/")} className="mt-4 text-sm text-gray-500 hover:text-gray-700">
-        Back to products
+
+      <button
+        onClick={() => router.push("/")}
+        className="mt-4 text-sm text-gray-400 hover:text-gray-200 transition"
+      >
+        ← Back to products
       </button>
     </main>
   );

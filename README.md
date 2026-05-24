@@ -1,36 +1,120 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Allo Inventory Reservation System
 
-## Getting Started
+This is a full-stack inventory reservation system built using Next.js, Prisma, PostgreSQL (Neon), and Redis (Upstash).
 
-First, run the development server:
+It solves the race condition problem during checkout by introducing temporary reservations.
+
+---
+
+## 🧠 Problem
+
+When multiple users try to buy the last unit of a product:
+- If stock is reduced only after payment → overselling occurs
+- If stock is reduced at add-to-cart → inventory gets blocked unnecessarily
+
+### ✅ Solution:
+Introduce **reservations**:
+- Reserve stock for a short time (10 minutes)
+- Confirm → stock is permanently reduced
+- Expire/Cancel → stock is released
+
+---
+
+## ⚙️ Tech Stack
+
+- Next.js (App Router)
+- TypeScript
+- Prisma ORM
+- PostgreSQL (Neon)
+- Redis (Upstash)
+- Tailwind CSS
+
+---
+
+## 📦 Data Model
+
+- **Product**
+- **Warehouse**
+- **StockLevel**
+  - totalUnits
+  - reservedUnits
+- **Reservation**
+  - status: PENDING | CONFIRMED | RELEASED
+  - expiresAt
+
+---
+
+## 🔌 API Endpoints
+
+### GET /api/products
+Returns all products with available stock per warehouse.
+
+### GET /api/warehouses
+Returns all warehouses.
+
+### POST /api/reservations
+Creates a reservation.
+
+- Returns **409** if stock is insufficient
+- Uses Redis lock to ensure concurrency safety
+
+### POST /api/reservations/:id/confirm
+Confirms reservation.
+
+- Returns **410** if expired
+
+### POST /api/reservations/:id/release
+Releases reservation early.
+
+---
+
+## 🔒 Concurrency Handling
+
+To prevent race conditions:
+
+- Used **Redis distributed lock**
+- Key: `lock:{productId}:{warehouseId}`
+- Only one request can reserve at a time
+- Other requests receive `409`
+
+Additionally:
+- Prisma transactions ensure atomic updates
+
+---
+
+## ⏳ Expiry Handling
+
+Reservations expire after 10 minutes.
+
+### Approach used:
+**Lazy cleanup**
+
+- Expired reservations are released during API calls
+- Updates status to `RELEASED`
+- Decrements reserved units
+
+### Tradeoff:
+- Simpler than cron jobs
+- May leave short-lived stale data until next request
+
+---
+
+## 🖥️ Frontend
+
+- Product listing page
+- Shows stock per warehouse
+- Reserve button
+
+Checkout page:
+- Countdown timer
+- Confirm / Cancel buttons
+- Handles 409 and 410 errors
+
+---
+
+## 🧪 Run Locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+git clone <repo-url>
+cd allo-inventory
+npm install

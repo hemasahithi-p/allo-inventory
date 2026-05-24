@@ -5,7 +5,9 @@ import { releaseExpiredReservations } from "@/lib/expiry";
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  await releaseExpiredReservations();
+  if (process.env.NODE_ENV === "production") {
+    await releaseExpiredReservations();
+  }
 
   const products = await prisma.product.findMany({
     include: {
@@ -15,13 +17,5 @@ export async function GET() {
     },
   });
 
-  const result = products.map((p) => ({
-    ...p,
-    stockLevels: p.stockLevels.map((sl) => ({
-      ...sl,
-      availableUnits: sl.totalUnits - sl.reservedUnits,
-    })),
-  }));
-
-  return NextResponse.json(result);
+  return NextResponse.json(products);
 }

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { prisma } from "@/lib/prisma";
 import { releaseExpiredReservations } from "@/lib/expiry";
 import { NextResponse } from "next/server";

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/redis";
 import { NextRequest, NextResponse } from "next/server";
